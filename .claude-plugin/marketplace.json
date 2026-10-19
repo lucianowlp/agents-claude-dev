@@ -1,0 +1,17 @@
+{
+  "name": "agents-claude-dev",
+  "owner": {
+    "name": "lucianowlp"
+  },
+  "metadata": {
+    "description": "Fluxo de desenvolvimento local com subagentes para projetos .NET, Angular e Python."
+  },
+  "plugins": [
+    {
+      "name": "fluxo-dev",
+      "source": "./plugins/fluxo-dev",
+      "description": "Wizard de configuração por projeto + fluxo planejar → implementar → testar → revisar, com checagem automática após edições.",
+      "version": "0.1.0"
+    }
+  ]
+}

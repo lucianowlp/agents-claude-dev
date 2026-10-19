@@ -1,0 +1,17 @@
+{
+  "description": "Roda a checagem rápida configurada em .claude/fluxo-dev.env após cada edição de arquivo.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/checar-apos-edicao.sh\"",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}
