@@ -1,6 +1,6 @@
 {
   "name": "fluxo-dev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Wizard de configuração por projeto + fluxo planejar → implementar → testar → revisar para .NET, Angular e Python.",
   "author": {
     "name": "lucianowlp"

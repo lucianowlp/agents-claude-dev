@@ -3,10 +3,47 @@
 # Lê .claude/fluxo-dev.env do projeto e roda CHECAR_<extensão> para o arquivo editado.
 #   exit 0 -> segue normalmente (sem config, extensão sem checagem ou checagem ok)
 #   exit 2 -> checagem falhou; a saída (stderr) volta para o Claude corrigir
+#
+# Onde procura a config:
+#   1. $CLAUDE_PROJECT_DIR/.claude/fluxo-dev.env (a pasta da sessão);
+#   2. senão, sobe a partir da pasta do arquivo editado até a raiz do git
+#      (pasta com .git) ou a raiz do disco.
+# O comando roda a partir da pasta onde a config foi encontrada.
+
+entrada="$(cat)"
+arquivo="$(printf '%s' "$entrada" | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+[ -n "$arquivo" ] || exit 0
+
+# Converte o caminho do JSON (C:\\proj\\a.cs ou /c/proj/a.cs) para o formato do bash.
+caminho_bash() {
+  local p
+  p="$(printf '%s' "$1" | tr '\\' '/' | tr -s '/')"
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -u "$p" 2>/dev/null || printf '%s' "$p"
+  else
+    case "$p" in
+      [A-Za-z]:/*) printf '/%s%s' "$(printf '%s' "${p:0:1}" | tr '[:upper:]' '[:lower:]')" "${p:2}" ;;
+      *) printf '%s' "$p" ;;
+    esac
+  fi
+}
 
 projeto="${CLAUDE_PROJECT_DIR:-$PWD}"
 config="$projeto/.claude/fluxo-dev.env"
-[ -f "$config" ] || exit 0
+if [ ! -f "$config" ]; then
+  config=""
+  pasta="$(caminho_bash "$arquivo")"
+  case "$pasta" in /*) ;; *) pasta="$projeto/$pasta" ;; esac
+  pasta="${pasta%/*}"
+  while [ -n "$pasta" ]; do
+    if [ -f "$pasta/.claude/fluxo-dev.env" ]; then
+      projeto="$pasta"; config="$pasta/.claude/fluxo-dev.env"; break
+    fi
+    [ -e "$pasta/.git" ] && break
+    pasta="${pasta%/*}"
+  done
+  [ -n "$config" ] || exit 0
+fi
 
 # Lê o valor de uma chave do arquivo de config SEM executá-lo (não usa `source`).
 ler_config() {
@@ -22,10 +59,6 @@ ler_config() {
 }
 
 [ "$(ler_config ATIVO)" = "0" ] && exit 0
-
-entrada="$(cat)"
-arquivo="$(printf '%s' "$entrada" | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
-[ -n "$arquivo" ] || exit 0
 
 nome="${arquivo##*[/\\]}"
 case "$nome" in
@@ -51,13 +84,13 @@ fi
 [ "$status" -eq 0 ] && exit 0
 
 if [ "$status" -eq 124 ]; then
-  echo "fluxo-dev: checagem de .$extensao passou de ${tempo}s e foi interrompida (\`$comando\`). Considere um comando mais rápido em .claude/fluxo-dev.env." >&2
+  echo "fluxo-dev: checagem de .$extensao passou de ${tempo}s e foi interrompida (\`$comando\`). Considere um comando mais rápido em $config." >&2
   exit 0
 fi
 
 {
   echo "fluxo-dev: a checagem falhou após editar $nome"
-  echo "Comando: $comando"
+  echo "Comando: $comando (em $projeto)"
   echo "---"
   printf '%s\n' "$saida" | tail -40
 } >&2

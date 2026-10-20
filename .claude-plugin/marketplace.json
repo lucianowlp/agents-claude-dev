@@ -11,7 +11,7 @@
       "name": "fluxo-dev",
       "source": "./plugins/fluxo-dev",
       "description": "Wizard de configuração por projeto + fluxo planejar → implementar → testar → revisar, com checagem automática após edições.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }

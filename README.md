@@ -32,7 +32,9 @@ No terminal interativo do Claude Code:
 /plugin install fluxo-dev@agents-claude-dev
 ```
 
-Depois, dentro de cada projeto:
+Se você declarar o marketplace direto no `~/.claude/settings.json`, as skills só aparecem depois que o app baixa o plugin para o cache — aguarde um pouco ou reabra a sessão.
+
+Depois, dentro de cada projeto (com a sessão aberta na raiz do git):
 
 ```
 /fluxo-dev:configurar-projeto
@@ -64,7 +66,7 @@ CLAUDE.md                  ← bloco entre <!-- fluxo-dev:inicio --> e <!-- flux
 Exemplo de `.claude/fluxo-dev.env`:
 
 ```bash
-CHECAR_cs="dotnet build MinhaSolucao.sln --nologo -v q -clp:ErrorsOnly"
+CHECAR_cs="dotnet build src/Api/Api.csproj --nologo -v q -clp:ErrorsOnly"   # ou a .sln/.slnx
 CHECAR_ts="cd frontend && npx tsc --noEmit -p tsconfig.app.json"
 CHECAR_py="ruff check ."
 TEMPO_MAXIMO=170
@@ -72,6 +74,15 @@ ATIVO=1
 ```
 
 O arquivo é lido como texto (não é executado com `source`); só o comando da extensão editada roda. Se passar do `TEMPO_MAXIMO`, a checagem é interrompida sem bloquear o Claude.
+
+O hook procura a config primeiro em `$CLAUDE_PROJECT_DIR/.claude/fluxo-dev.env` (a pasta da sessão). Se não achar, sobe a partir da pasta do arquivo editado até a raiz do git (ou a raiz do disco), e roda o comando a partir da pasta onde a config foi encontrada. Isso cobre sessões abertas numa pasta acima do repositório, mas o recomendado é **abrir as sessões na raiz do git**: o `CLAUDE.md`, o `.claude/settings.json` e as skills do projeto são carregados a partir da pasta da sessão.
+
+### O que o wizard aproveita do projeto
+- Comandos do CI, `AGENTS.md`, regras do Cursor (`.cursor/rules`, `.cursorrules`), skills do projeto em `.claude/skills`, `.claude/launch.json` e scripts `run-dev.*` / `start.*` — o `CLAUDE.md` gerado aponta para eles em vez de duplicar.
+- A convenção de commits vista no `git log`: o wizard só pede confirmação.
+- Comandos que já falham em código legado (ex.: `prettier --check` em centenas de arquivos) ficam como "conhecido quebrado" e não viram checagem automática.
+
+No caso típico são no máximo 3 rodadas de perguntas, mesmo com duas stacks.
 
 ## Requisitos
 - Claude Code (CLI, desktop ou IDE).

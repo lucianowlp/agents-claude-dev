@@ -30,3 +30,7 @@ No Windows, o Python pode estar como `py` em vez de `python`. Se não houver Pyt
 
 ## Arquivos sensíveis comuns
 `.env`, `.env.*` (exceto `.env.example`), `secrets.*`, `credentials*.json`, `*.pem`
+
+## Observações
+- `ruff check .` / `black --check .` acusando muitos arquivos legados: registre como "conhecido quebrado" e não use como checagem automática (ou limite a checagem às pastas novas).
+- `uvicorn --reload` e `runserver` são processos longos: na validação, rode em background, espere a URL responder e encerre (veja a etapa 5 do wizard).

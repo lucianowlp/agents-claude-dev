@@ -5,12 +5,13 @@ set -u
 raiz="$(cd "$(dirname "$0")/.." && pwd)"
 hook="$raiz/plugins/fluxo-dev/hooks/checar-apos-edicao.sh"
 projeto="$(mktemp -d)"
-trap 'rm -rf "$projeto"' EXIT
+base="$(mktemp -d)"
+trap 'rm -rf "$projeto" "$base"' EXIT
 mkdir -p "$projeto/.claude"
 export CLAUDE_PROJECT_DIR="$projeto"
 
 falhas=0
-caso() { # caso <descrição> <exit esperado> <file_path>
+caso() { # caso <descrição> <exit esperado> <file_path já escapado para JSON>
   local saida status
   saida="$(printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$3" | bash "$hook" 2>&1)"; status=$?
   if [ "$status" -eq "$2" ]; then echo "ok   - $1"; else echo "FALHA - $1 (esperado $2, veio $status)"; echo "$saida" | sed 's/^/       /'; falhas=$((falhas+1)); fi
@@ -40,6 +41,28 @@ caso "ATIVO=0 desliga o hook"             0 '/proj/a.ts'
 
 printf 'CHECAR_ts="exit 1"\r\nATIVO=1\r\n' > "$projeto/.claude/fluxo-dev.env"
 caso "config com CRLF funciona"           2 '/proj/a.ts'
+
+# --- Sessão aberta numa pasta acima da raiz do git (busca a partir do arquivo) ---
+# $base/sessao        <- CLAUDE_PROJECT_DIR, sem config
+# $base/site/.git     <- raiz do git, com .claude/fluxo-dev.env
+# $base/outro/.git    <- raiz do git, sem config
+# $base/.claude/...   <- config ACIMA das raízes do git (não deve ser usada)
+mkdir -p "$base/sessao" "$base/site/.git" "$base/site/.claude" "$base/site/src/app" \
+         "$base/outro/.git" "$base/outro/src" "$base/.claude"
+export CLAUDE_PROJECT_DIR="$base/sessao"
+printf 'CHECAR_ts="exit 1"\nCHECAR_cs="test -f marcador.txt"\n' > "$base/site/.claude/fluxo-dev.env"
+printf 'CHECAR_ts="exit 1"\n' > "$base/.claude/fluxo-dev.env"
+
+caso "config só na subpasta-raiz do git é encontrada"   2 "$base/site/src/app/a.ts"
+caso "comando sem marcador na pasta da config falha"    2 "$base/site/src/Program.cs"
+touch "$base/site/marcador.txt"
+caso "comando roda a partir da pasta da config"         0 "$base/site/src/Program.cs"
+caso "config não encontrada até a raiz do git -> nada"  0 "$base/outro/src/a.ts"
+
+if command -v cygpath >/dev/null 2>&1; then
+  windows="$(cygpath -w "$base/site/src/app/a.ts" | sed 's/\\/\\\\/g')"
+  caso "busca funciona com caminho Windows (C:\\...)"   2 "$windows"
+fi
 
 echo
 [ "$falhas" -eq 0 ] && echo "Todos os testes passaram." || { echo "$falhas teste(s) falharam."; exit 1; }

@@ -8,6 +8,8 @@ argument-hint: <descrição da feature ou do bug>
 
 Pedido do usuário: $ARGUMENTS
 
+**Idioma: todo texto para o usuário sai em português** — o plano resumido, perguntas de aprovação, relatos de falha, tabelas e o resumo final —, mesmo que os subagentes, logs ou ferramentas respondam em inglês. Nomes de comandos, arquivos e a mensagem de commit seguem o padrão do projeto (`CLAUDE.md`).
+
 ## Pré-requisito
 Se o `CLAUDE.md` não tem a seção `## Comandos` (ou o bloco `<!-- fluxo-dev:inicio -->`), avise que o projeto ainda não foi configurado e ofereça rodar `/fluxo-dev:configurar-projeto` antes. Só continue sem configuração se o usuário insistir.
 
