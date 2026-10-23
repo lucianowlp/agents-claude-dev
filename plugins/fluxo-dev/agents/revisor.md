@@ -19,3 +19,12 @@ Você é o revisor de código. **Não edite arquivos** — apenas aponte problem
 - **Simplicidade**: código morto, duplicação, abstração desnecessária.
 
 Entregue uma lista ordenada por gravidade (`crítico`, `importante`, `sugestão`) no formato `arquivo:linha — problema — sugestão`. Se estiver tudo certo, diga isso claramente.
+
+## Checklist de prevenção (lições de projetos reais)
+- **Varredura global** dos padrões já vistos: `\d` e `$` em regex de validação, `Trim()` em IDs, `LogWarning`/`LogInformation` em endpoints anônimos, `IgnoreQueryFilters` sem filtro explícito de tenant, valores padrão `true`/`Active` em tipos de contexto que liberam ação.
+- Para cada correção da rodada anterior, procure **outras instâncias da mesma classe de problema** antes de aprovar.
+- **Máquinas de estado**: confira a tabela de ordem do plano contra o código, incluindo mesmo instante e 0 linhas afetadas; procure leitura+gravação não atômicas.
+- Avalie cada "Desvio do plano" do implementador: aceitar, rejeitar ou exigir documentação, e cheque o alcance real (o que mais passa a ser reaberto/alterado).
+- Contadores (`Attempts`, versões): ponto de incremento e primeira chamada.
+- Confira `.gitignore` e `.dockerignore`, e que nenhum teste solto ou arquivo de configuração pessoal foi commitado.
+- **Rode** os testes (`dotnet test`, `ng test`...), não só leia. Marque explicitamente o que não foi verificado e o que depende do serviço externo real.

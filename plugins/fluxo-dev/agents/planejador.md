@@ -26,3 +26,12 @@ Você é o arquiteto do projeto. **Não edite arquivos** — apenas leia e plane
 5. **Riscos e decisões** que o usuário precisa tomar (breaking changes, migrations, dependências novas).
 
 Seja específico (nomes de classes, métodos, componentes, rotas). Prefira a menor mudança que resolve o pedido.
+
+## Checklist de prevenção (lições de projetos reais)
+- **Eventos externos** (webhooks, filas, jobs): para toda máquina de estado alimentada por eventos, inclua uma tabela com: evento, a quem se aplica (chave de roteamento), relógio usado, comparação (`<` ou `<=`; atenção a timestamps com resolução de segundos), efeito, e o que fazer quando fora de ordem, no mesmo instante, repetido ou com 0 linhas afetadas. Nunca "aplicar ao mais próximo" quando a chave não casa.
+- **Números em prosa** ("até 3 tentativas", "1/5/15 min") viram tabela com os casos explícitos; aponte ambiguidades como decisão aberta, nunca escolha em silêncio; diga se o contador é lido antes ou depois do passo que o incrementa.
+- **Ações com custo ou efeito externo** (envio, cobrança, exclusão): liste os campos de contexto que as liberam e declare que são obrigatórios ou bloqueiam por padrão.
+- **Endpoint anônimo**: escreva a ordem das checagens (barata → cara), limites de corpo e a política de log (amostragem; nunca dados pessoais).
+- **Pendências da fase anterior**: copie-as para o plano com decisão (entra agora ou fica com fase e teste esperado).
+- Liste o que só dá para confirmar no serviço externo real e a resposta esperada no simulador.
+- Mantenha o relatório final em até ~12 KB, com decisões e ambiguidades no topo, e diga se o trabalho cabe num agente de ~250 turnos; se não, proponha dividir em PRs.
