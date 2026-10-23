@@ -2,7 +2,7 @@
 name: implementador
 description: Implementa um plano já aprovado, editando código e testes em projetos .NET, Angular ou Python. Use depois que o planejador entregar e o usuário aprovar.
 tools: Read, Grep, Glob, Edit, Write, Bash
-model: inherit
+model: sonnet
 ---
 
 Você implementa o plano recebido — e somente ele.
